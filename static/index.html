@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Justact</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f4f0e8;--paper-deep:#ebe4d4;--ink:#1a1713;--ink-faded:#8a8478;--rule:#c9c1ae;--accent:#7a1f1f;--warn-bg:#f6e6c9;--crit:#7a1f1f;--crit-bg:#f0d8d8;--shadow:0 12px 32px -12px rgba(26,23,19,0.18);}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--paper);color:var(--ink);font-family:"Inter Tight",sans-serif;min-height:100vh;line-height:1.5;}
+.container{max-width:1100px;margin:0 auto;padding:3rem 2rem 6rem;}
+header{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:1.25rem;border-bottom:2px solid var(--ink);margin-bottom:3rem;}
+.brand{font-family:"Fraunces",serif;font-weight:800;font-size:2.5rem;letter-spacing:-0.03em;}
+.brand em{font-style:italic;font-weight:400;color:var(--accent);}
+.headline{font-family:"Fraunces",serif;font-size:1.5rem;font-weight:800;}
+.upload-section{background:var(--paper-deep);border:1px solid var(--rule);padding:2.5rem;margin-bottom:2.5rem;box-shadow:var(--shadow);}
+.upload-prompt{font-family:"Fraunces",serif;font-size:1.5rem;font-weight:800;margin-bottom:1.5rem;}
+.upload-row{display:flex;gap:1rem;flex-wrap:wrap;}
+input[type="file"]{font-family:"JetBrains Mono",monospace;font-size:0.85rem;padding:0.75rem 1rem;background:var(--paper);border:1px solid var(--ink);flex:1;min-width:280px;cursor:pointer;}
+input[type="file"]::file-selector-button{font-family:"JetBrains Mono",monospace;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 1rem;margin-right:1rem;background:var(--ink);color:var(--paper);border:none;cursor:pointer;}
+.btn{font-family:"JetBrains Mono",monospace;font-size:0.78rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;padding:0.9rem 2rem;background:var(--accent);color:var(--paper);border:none;cursor:pointer;transition:all 0.2s;}
+.btn:hover:not(:disabled){background:var(--ink);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.loading{display:none;padding:4rem 2rem;text-align:center;}
+.loading.active{display:block;}
+.bar{width:200px;height:2px;background:var(--rule);margin:0 auto 1.5rem;overflow:hidden;position:relative;}
+.bar::after{content:"";position:absolute;inset:0;width:40%;background:var(--accent);animation:sl 1.5s ease-in-out infinite;}
+@keyframes sl{0%,100%{left:-40%;}50%{left:100%;}}
+.bar-text{font-family:"JetBrains Mono",monospace;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faded);}
+.results{display:none;}
+.results.active{display:block;animation:fi 0.6s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.meta{display:flex;gap:2rem;font-family:"JetBrains Mono",monospace;font-size:0.75rem;color:var(--ink-faded);margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--rule);}
+.meta strong{color:var(--ink);font-size:1.1rem;display:block;margin-bottom:0.15rem;}
+.warn-box{display:none;margin-bottom:2rem;}
+.warn-box.active{display:block;}
+.warn-title{font-family:"JetBrains Mono",monospace;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-faded);margin-bottom:0.5rem;}
+.warn-item{display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;padding:0.9rem 1.25rem;border-left:3px solid #a35200;background:var(--warn-bg);margin-bottom:0.5rem;}
+.warn-item.hi{border-left-color:var(--crit);background:var(--crit-bg);}
+.badge{font-family:"JetBrains Mono",monospace;font-size:0.65rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;padding:0.25rem 0.6rem;background:var(--ink);color:var(--paper);}
+.warn-item.hi .badge{background:var(--crit);}
+.wfield{font-family:"JetBrains Mono",monospace;font-size:0.7rem;text-transform:uppercase;color:var(--ink-faded);}
+.sec{margin-bottom:3rem;}
+.sec-label{font-family:"JetBrains Mono",monospace;font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink-faded);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;}
+.summary{font-family:"Fraunces",serif;font-size:1.2rem;line-height:1.65;max-width:72ch;}
+.summary::first-letter{font-size:3.5rem;float:left;line-height:0.85;margin:0.1rem 0.5rem 0 0;font-weight:600;color:var(--accent);}
+.kws{display:flex;flex-wrap:wrap;gap:0.6rem;}
+.kw{font-family:"Fraunces",serif;font-style:italic;font-size:1.05rem;padding:0.4rem 1rem;background:var(--paper-deep);border-bottom:2px solid var(--ink);transition:all 0.15s;}
+.kw:hover{border-bottom-color:var(--accent);color:var(--accent);}
+.err{display:none;padding:2rem;background:var(--crit-bg);border-left:3px solid var(--crit);font-family:"Fraunces",serif;margin-bottom:2rem;}
+.err.active{display:block;}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="brand">just<em>act</em></div>
+  <div class="headline">Legal Document Analysis</div>
+</header>
+<div class="upload-section">
+  <div class="upload-prompt">Upload Document</div>
+  <div class="upload-row">
+    <input type="file" id="fi" accept=".pdf,.docx"/>
+    <button class="btn" id="ab" disabled>Analyze</button>
+  </div>
+</div>
+<div class="loading" id="ld">
+  <div class="bar"></div>
+  <div class="bar-text">Extracting · Classifying · Summarizing</div>
+</div>
+<div class="err" id="eb"></div>
+<div class="results" id="res">
+  <div class="meta">
+    <span><strong id="wc">0</strong>words</span>
+    <span><strong id="rt">0</strong>min read</span>
+  </div>
+  <div class="warn-box" id="wb">
+    <div class="warn-title">Extraction Notices</div>
+    <div id="wl"></div>
+  </div>
+  <div class="sec">
+    <div class="sec-label">Summary</div>
+    <p class="summary" id="sm"></p>
+  </div>
+  <div class="sec">
+    <div class="sec-label"><span>Keywords</span><span id="kc"></span></div>
+    <div class="kws" id="kl"></div>
+  </div>
+</div>
+</div>
+<script>
+const fi=document.getElementById("fi");
+const ab=document.getElementById("ab");
+const ld=document.getElementById("ld");
+const res=document.getElementById("res");
+const eb=document.getElementById("eb");
+fi.addEventListener("change",()=>{ab.disabled=!fi.files.length;});
+ab.addEventListener("click",async()=>{
+  const file=fi.files[0];if(!file)return;
+  res.classList.remove("active");eb.classList.remove("active");
+  ld.classList.add("active");ab.disabled=true;
+  const fd=new FormData();fd.append("file",file);
+  try{
+    const r=await fetch("/analyze",{method:"POST",body:fd});
+    if(!r.ok)throw new Error("Server error "+r.status);
+    render(await r.json());
+  }catch(e){
+    eb.textContent="Analysis failed: "+e.message;
+    eb.classList.add("active");
+  }finally{ld.classList.remove("active");ab.disabled=false;}
+});
+function render(d){
+  document.getElementById("wc").textContent=d.word_count.toLocaleString();
+  document.getElementById("rt").textContent=d.read_time;
+  const wb=document.getElementById("wb");
+  const wl=document.getElementById("wl");
+  wl.innerHTML="";
+  if(d.extraction_warnings&&d.extraction_warnings.length){
+    d.extraction_warnings.forEach(w=>{
+      const el=document.createElement("div");
+      el.className="warn-item "+(w.severity==="high"?"hi":"");
+      el.innerHTML="<span class=badge>"+w.severity+"</span><span>"+esc(w.message)+"</span><span class=wfield>"+esc(w.field)+"</span>";
+      wl.appendChild(el);
+    });
+    wb.classList.add("active");
+  }else{wb.classList.remove("active");}
+  document.getElementById("sm").textContent=d.summary||"No summary generated.";
+  const kl=document.getElementById("kl");
+  kl.innerHTML="";
+  (d.keywords||[]).forEach(k=>{
+    const el=document.createElement("span");
+    el.className="kw";el.textContent=k;kl.appendChild(el);
+  });
+  document.getElementById("kc").textContent=(d.keywords||[]).length+" terms";
+  res.classList.add("active");
+}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+</script>
+</body>
+</html>
